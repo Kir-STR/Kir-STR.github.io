@@ -1,0 +1,12 @@
+title: Kir-STR
+description: Пошаговые инструкции по ИИ-инструментам — для тех, кто начинает с нуля.
+lang: ru
+theme: minima
+
+# Главная без пунктов меню: список инструкций строится на ней самой.
+header_pages:
+  - index.md
+
+exclude:
+  - README.md
+  - scripts
