@@ -1,0 +1,35 @@
+---
+# Front matter is required: Jekyll compiles this file into assets/main.css.
+---
+
+@import "minima";
+
+// Callouts from Obsidian become blockquotes: make them readable boxes instead of grey italics.
+blockquote {
+  font-style: normal;
+  font-size: 1rem;
+  letter-spacing: normal;
+  color: inherit;
+  background: #f6f8fa;
+  border-left: 4px solid #4a8bd6;
+  border-radius: 4px;
+  padding: 10px 15px;
+}
+
+details {
+  background: #f6f8fa;
+  border-radius: 4px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+}
+
+summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+// Screenshots: a thin frame so light UI does not merge with the page.
+.post-content img {
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+}
