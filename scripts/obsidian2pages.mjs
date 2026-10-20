@@ -10,7 +10,7 @@
 //   ![[path/img.png|650]]      -> ![](img/img.png){: width="650"}  (image copied to <slug>/img/)
 //   > [!type] Title ...         -> blockquote with an emoji and bold title
 //   > [!type]- Title ...        -> <details><summary>Title</summary> ... </details>
-//   [[#Heading]]                -> [Heading](#slug), the heading gets {#slug}
+//   [[#Heading]]                -> [Heading](#slug), <a id="slug"></a> is put before the heading
 //   # H1                        -> front matter title (the H1 line is dropped)
 // Front matter of an existing <slug>/index.md (description, date, ...) is kept; title is refreshed.
 // The page body is wrapped in {% raw %} so Liquid never touches it.
@@ -47,7 +47,8 @@ src = src.replace(/\[\[#([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, h, alias) => { linke
 for (const h of linked) {
   const re = new RegExp('^(#{1,6}) ' + h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[ \\t]*$', 'm');
   if (!re.test(src)) fail('heading not found for link [[#' + h + ']]');
-  src = src.replace(re, (m) => `${m.trimEnd()} {#${toSlug(h)}}`);
+  // GitHub Pages parses Markdown as GFM, where "{#id}" after a heading is not supported: use an HTML anchor.
+  src = src.replace(re, (m) => `<a id="${toSlug(h)}"></a>\n\n${m.trimEnd()}`);
 }
 
 // Image embeds.
