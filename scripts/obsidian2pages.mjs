@@ -2,8 +2,9 @@
 // Convert an Obsidian note into a GitHub Pages (Jekyll) page.
 //
 // Usage: node scripts/obsidian2pages.mjs <note.md> <slug>
-//   <note.md> — path to the Obsidian note (its embeds are resolved relative to the vault root,
-//               which is the note's directory unless --vault <dir> is given)
+//   <note.md> — path to the Obsidian note. Image embeds are looked up like Obsidian does: from the
+//               vault root, from the note's folder, or by file name under the vault root. The vault
+//               root is the note's folder unless --vault <dir> is given.
 //   <slug>    — output folder in the site: <slug>/index.md and <slug>/img/*
 //
 // What it converts:
@@ -14,8 +15,8 @@
 //   # H1                        -> front matter title (the H1 line is dropped)
 // Front matter of an existing <slug>/index.md (description, date, ...) is kept; title is refreshed.
 // The page body is wrapped in {% raw %} so Liquid never touches it.
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
-import { dirname, join, basename, resolve } from 'node:path';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync } from 'node:fs';
+import { dirname, join, basename, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const args = process.argv.slice(2);
@@ -51,11 +52,21 @@ for (const h of linked) {
   src = src.replace(re, (m) => `<a id="${toSlug(h)}"></a>\n\n${m.trimEnd()}`);
 }
 
-// Image embeds.
+// Image embeds. Resolved like Obsidian: path from the vault root, path from the note's folder,
+// or (shortest link form, which Obsidian writes after moves) a unique file ending with that path.
+let vaultFiles = null;
+const listFiles = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+  e.name.startsWith('.') || e.name === 'node_modules' ? [] : e.isDirectory() ? listFiles(join(dir, e.name)) : [join(dir, e.name)]);
+const findImage = (p) => {
+  for (const c of [join(vault, p), join(dirname(notePath), p)]) if (existsSync(c)) return c;
+  vaultFiles ??= listFiles(vault).map((f) => f.split(sep).join('/'));
+  const hits = vaultFiles.filter((f) => f.endsWith('/' + p));
+  if (hits.length !== 1) fail(`image "${p}": ${hits.length} matches under ${vault}` + (hits.length ? '' : ' (pass --vault <vault root>?)'));
+  return hits[0];
+};
 const copied = [];
 src = src.replace(/!\[\[([^\]|]+\.(?:png|jpe?g|gif|webp|svg))(?:\|(\d+))?\]\]/gi, (_, p, w) => {
-  const from = join(vault, p);
-  if (!existsSync(from)) fail('image not found: ' + from);
+  const from = findImage(p);
   mkdirSync(imgDir, { recursive: true });
   copyFileSync(from, join(imgDir, basename(p)));
   copied.push(basename(p));
