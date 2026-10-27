@@ -33,3 +33,4 @@ git add -A && git commit -m "<что изменилось>" && git push
 | slug | Заметка в Obsidian |
 | --- | --- |
 | `claudian-mimo` | `my/1.Projects/social-capital/guides/claudian-mimo/Инструкция MiMo.md` |
+| `pishi` | `my/1.Projects/social-capital/guides/pishi/Инструкция pishi.md` |
